@@ -1,0 +1,5 @@
+- ARP全称“Address Resolution Protocol”，地址解析协议。
+- 实现局域网内通过IP地址获取主机的MAC地址。
+- MAC地址48位主机的物理地址，局域网内唯一。
+- ARP协议类似DNS服务，但不需要配置服务。
+- ARP协议是三层协议。

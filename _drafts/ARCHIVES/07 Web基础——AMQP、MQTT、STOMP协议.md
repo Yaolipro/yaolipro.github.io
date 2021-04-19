@@ -1,0 +1,64 @@
+[TOC]
+
+### 协议简介
+* HTTP 是在网络上传输HTML的协议，用于浏览器和服务器的通信
+* HTTP 协议构建于 TCP/IP 协议之上，是一个应用层协议，默认端口号是 80
+* HTTP 协议是以 ASCII 码传输，是无连接无状态的
+
+### 请求报文
+* HTTP 请求分为三个部分：状态行、请求头、消息主体。类似于下面这样：
+```
+<method> <request-URL> <version>
+<headers>
+
+<entity-body>
+```
+* HTTP 定义了与服务器交互的不同方法，最基本的方法有4种，分别是GET，POST，PUT，DELETE。URL全称是资源描述符，我们可以这样认为：一个URL地址，它用于描述一个网络上的资源，而 HTTP 中的GET，POST，PUT，DELETE就对应着对这个资源的查，增，改，删4个操作
+
+### 响应报文
+* HTTP响应也由3个部分构成，分别是：状态行、响应头(Response Header)、响应正文
+* 常见的状态码有如下几种：
+	- 200 OK 客户端请求成功
+	- 301 Moved Permanently 请求永久重定向
+	- 302 Moved Temporarily 请求临时重定向
+	- 304 Not Modified 文件未修改，可以直接使用缓存的文件
+	- 400 Bad Request 由于客户端请求有语法错误，不能被服务器所理解
+	- 401 Unauthorized 请求未经授权。这个状态代码必须和WWW-Authenticate报头域一起使用
+	- 403 Forbidden 服务器收到请求，但是拒绝提供服务。服务器通常会在响应正文中给出不提供服务的原因
+	- 404 Not Found 请求的资源不存在，例如，输入了错误的URL
+	- 500 Internal Server Error 服务器发生不可预期的错误，导致无法完成客户端的请求
+	- 503 Service Unavailable 服务器当前不能够处理客户端的请求，在一段时间之后，服务器可能会恢复正常
+
+### 条件 GET
+* 客户端重复访问站点域名，为了优化带宽，服务器根据请求中的 If-Modified-Since 字段判断响应文件是否有更新，如果没有更新，服务器返回 304 Not Modified 响应，告诉浏览器使用缓存文件，具体如下：
+```
+	Status Code: 304 Not Modified
+```
+
+### 持久连接
+* 我们知道 HTTP 协议采用“请求-应答”模式，每个请求/应答客户和服务器都要新建一个连接，完成之后立即断开连接，Keep-Alive 功能使客户端到服务器端的连接持续有效，避免重复创建
+* HTTP 1.0 版本中，如果客户端浏览器支持 Keep-Alive ，那么就在HTTP请求头中添加一个字段 Connection: Keep-Alive
+* 在 HTTP 1.1 版本中，默认情况下所有连接都被保持，如果加入 "Connection: close" 才关闭
+	- Keep-Alive 简单说就是保持当前的TCP连接，避免了重新建立连接
+	- 长连接不可能一直保持，例如 Keep-Alive: timeout=5, max=100，表示这个TCP通道可以保持5秒，max=100，表示这个长连接最多接收100次请求就断开
+	- HTTP 是一个无状态协议，这意味着每个请求都是独立的，Keep-Alive 没能改变这个结果
+	- 使用长连接之后，客户端、服务端怎么知道本次传输结束呢？两部分：1. 判断传输数据是否达到了Content-Length 指示的大小；2. 动态生成的文件没有 Content-Length ，它是分块传输（chunked），这时候就要根据 chunked 编码来判断，chunked 编码的数据在最后有一个空 chunked 块，表明本次传输数据结束
+
+### Transfer-Encoding
+* 标示 HTTP 报文传输格式的头部值，当前的 HTTP 规范定义了一种传输取值——chunked。标示消息体由数量未定的块组成，并以最后一个大小为0的块为结束
+* chunked 的优势：服务器端可以边生成内容边发送，无需事先生成全部的内容
+* HTTP/2 不支持 Transfer-Encoding: chunked，HTTP/2 有自己的 streaming 传输方式（Source：MDN - Transfer-Encoding）
+
+### HTTP Pipelining
+* 默认情况下 HTTP 协议中每个传输层连接只能承载一个 HTTP 请求和响应，浏览器会在收到上一个请求的响应之后，再发送下一个请求。
+* HTTP Pipelining（管线化）是将多个 HTTP 请求整批提交的技术，在传送过程中不需等待服务端的回应。
+	- 管线化机制通过持久连接（persistent connection）完成，仅 HTTP/1.1 支持此技术（HTTP/1.0不支持）
+	- 只有 GET 和 HEAD 请求可以进行管线化，而 POST 则有所限制
+	- 初次创建连接时不应启动管线机制，因为对方（服务器）不一定支持 HTTP/1.1 版本的协议
+	- 管线化不会影响响应到来的顺序
+	- HTTP /1.1 要求服务器端支持管线化，但并不要求服务器端也对响应进行管线化处理，只是要求对于管线化的请求不失败即可
+	- 由于上面提到的服务器端问题，开启管线化很可能并不会带来大幅度的性能提升，而且很多服务器端和代理程序对管线化的支持并不好，因此现代浏览器如 Chrome 和 Firefox 默认并未开启管线化支持
+
+### 附录
+* 参考1：https://www.liaoxuefeng.com/wiki/1016959663602400/1017804782304672
+* 参考2：https://hit-alibaba.github.io/interview/basic/network/HTTP.html
