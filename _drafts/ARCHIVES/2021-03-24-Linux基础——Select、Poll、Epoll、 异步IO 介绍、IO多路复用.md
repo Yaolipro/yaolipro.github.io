@@ -375,3 +375,7 @@ while True:
 	- https://docs.python.org/3/library/socketserver.html
 	- https://amylewis.github.io/2018/07/16/Python-SocketServer/index.html
 * BSD Socket：https://docs.huihoo.com/gnu/linux/socket.html
+
+
+https://www.jianshu.com/p/7fe5945b80e7
+https://www.jianshu.com/p/7fe5945b80e7
